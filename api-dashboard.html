@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProFind - Backend API Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .api-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        .status-success {
+            color: #28a745;
+        }
+        .status-error {
+            color: #dc3545;
+        }
+        .json-response {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .endpoint-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get { background: #28a745; color: white; }
+        .post { background: #007bff; color: white; }
+        .put { background: #ffc107; color: black; }
+        .delete { background: #dc3545; color: white; }
+        .test-btn {
+            margin: 5px;
+        }
+        .navbar-brand {
+            font-family: 'Georgia', serif;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #343a40;
+            letter-spacing: 1px;
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 2px solid #343a40;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand text-white" href="/">ProFind</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="/login.html">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">
+                    <i class="fas fa-server"></i> Backend API Dashboard
+                </h1>
+                <p class="lead">This dashboard shows real-time backend API responses and database operations.</p>
+            </div>
+        </div>
+
+        <!-- Server Status -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="api-card">
+                    <h4><i class="fas fa-heartbeat"></i> Server Health</h4>
+                    <button class="btn btn-primary test-btn" onclick="testServerHealth()">
+                        <i class="fas fa-play"></i> Test Server Health
+                    </button>
+                    <div id="health-response" class="json-response mt-3" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="api-card">
+                    <h4><i class="fas fa-database"></i> Database Status</h4>
+                    <div id="db-status">
+                        <span class="status-error">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            MongoDB not connected (Demo mode)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Endpoints Testing -->
+        <div class="row">
+            <div class="col-12">
+                <div class="api-card">
+                    <h4><i class="fas fa-code"></i> API Endpoints Testing</h4>
+                    
+                    <!-- Professionals API -->
+                    <div class="mb-4">
+                        <h5>Professional Services</h5>
+                        <span class="endpoint-badge get">GET</span>
+                        <code>/api/professionals</code>
+                        <button class="btn btn-success btn-sm test-btn" onclick="testProfessionals()">
+                            Test API
+                        </button>
+                        <div id="professionals-response" class="json-response mt-2" style="display: none;"></div>
+                    </div>
+
+                    <!-- Authentication API -->
+                    <div class="mb-4">
+                        <h5>Authentication System</h5>
+                        <span class="endpoint-badge post">POST</span>
+                        <code>/api/auth/register</code>
+                        <button class="btn btn-primary btn-sm test-btn" onclick="testRegister()">
+                            Test Registration
+                        </button>
+                        <div id="register-response" class="json-response mt-2" style="display: none;"></div>
+                    </div>
+
+                    <!-- Payment API -->
+                    <div class="mb-4">
+                        <h5>Payment Gateway</h5>
+                        <span class="endpoint-badge post">POST</span>
+                        <code>/api/payments/create-razorpay-order</code>
+                        <button class="btn btn-warning btn-sm test-btn" onclick="testPayment()">
+                            Test Payment
+                        </button>
+                        <div id="payment-response" class="json-response mt-2" style="display: none;"></div>
+                    </div>
+
+                    <!-- Booking API -->
+                    <div class="mb-4">
+                        <h5>Booking System</h5>
+                        <span class="endpoint-badge post">POST</span>
+                        <code>/api/bookings</code>
+                        <button class="btn btn-info btn-sm test-btn" onclick="testBooking()">
+                            Test Booking
+                        </button>
+                        <div id="booking-response" class="json-response mt-2" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live API Logs -->
+        <div class="row">
+            <div class="col-12">
+                <div class="api-card">
+                    <h4><i class="fas fa-terminal"></i> Live API Activity</h4>
+                    <div id="api-logs" class="json-response">
+                        <div class="text-muted">API calls will appear here...</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm mt-2" onclick="clearLogs()">
+                        <i class="fas fa-trash"></i> Clear Logs
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backend Features Demo -->
+        <div class="row">
+            <div class="col-12">
+                <div class="api-card">
+                    <h4><i class="fas fa-cogs"></i> Backend Features Demonstration</h4>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <h6>🔐 Authentication</h6>
+                            <ul class="list-unstyled">
+                                <li>✅ JWT Tokens</li>
+                                <li>✅ Password Hashing</li>
+                                <li>✅ Protected Routes</li>
+                                <li>✅ Session Management</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>💳 Payment Gateway</h6>
+                            <ul class="list-unstyled">
+                                <li>✅ Razorpay Integration</li>
+                                <li>✅ Stripe Support</li>
+                                <li>✅ Order Creation</li>
+                                <li>✅ Payment Verification</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>🗄️ Database Operations</h6>
+                            <ul class="list-unstyled">
+                                <li>✅ User Management</li>
+                                <li>✅ Professional Profiles</li>
+                                <li>✅ Booking System</li>
+                                <li>✅ Data Validation</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>🔒 Security Features</h6>
+                            <ul class="list-unstyled">
+                                <li>✅ Rate Limiting</li>
+                                <li>✅ CORS Protection</li>
+                                <li>✅ Input Validation</li>
+                                <li>✅ Helmet Security</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let logCounter = 0;
+
+        function addLog(method, endpoint, status, response) {
+            logCounter++;
+            const logsDiv = document.getElementById('api-logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const statusClass = status >= 200 && status < 300 ? 'status-success' : 'status-error';
+            
+            const logEntry = `
+                <div class="border-bottom pb-2 mb-2">
+                    <strong>#${logCounter} [${timestamp}]</strong> 
+                    <span class="endpoint-badge ${method.toLowerCase()}">${method}</span>
+                    <code>${endpoint}</code>
+                    <span class="${statusClass}">Status: ${status}</span>
+                    <pre class="mt-1 mb-0">${JSON.stringify(response, null, 2)}</pre>
+                </div>
+            `;
+            
+            if (logsDiv.innerHTML.includes('API calls will appear here...')) {
+                logsDiv.innerHTML = logEntry;
+            } else {
+                logsDiv.innerHTML = logEntry + logsDiv.innerHTML;
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('api-logs').innerHTML = '<div class="text-muted">API calls will appear here...</div>';
+            logCounter = 0;
+        }
+
+        async function makeAPICall(method, endpoint, body = null, responseElementId = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const token = localStorage.getItem('token');
+                if (token) {
+                    options.headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                const data = await response.json();
+
+                addLog(method, endpoint, response.status, data);
+
+                if (responseElementId) {
+                    const element = document.getElementById(responseElementId);
+                    element.style.display = 'block';
+                    element.innerHTML = JSON.stringify(data, null, 2);
+                }
+
+                return data;
+            } catch (error) {
+                const errorData = { error: error.message };
+                addLog(method, endpoint, 'ERROR', errorData);
+                
+                if (responseElementId) {
+                    const element = document.getElementById(responseElementId);
+                    element.style.display = 'block';
+                    element.innerHTML = JSON.stringify(errorData, null, 2);
+                }
+            }
+        }
+
+        async function testServerHealth() {
+            await makeAPICall('GET', '/health', null, 'health-response');
+        }
+
+        async function testProfessionals() {
+            await makeAPICall('GET', '/professionals', null, 'professionals-response');
+        }
+
+        async function testRegister() {
+            const testUser = {
+                firstName: 'Test',
+                lastName: 'User',
+                email: `test${Date.now()}@example.com`,
+                password: 'Test123!',
+                phone: '9999999999',
+                gender: 'male',
+                dateOfBirth: '1990-01-01',
+                address: {
+                    street: 'Test Street',
+                    city: 'Delhi',
+                    state: 'Delhi',
+                    pincode: '110001'
+                }
+            };
+            await makeAPICall('POST', '/auth/register', testUser, 'register-response');
+        }
+
+        async function testPayment() {
+            const paymentData = {
+                amount: 500,
+                currency: 'INR'
+            };
+            await makeAPICall('POST', '/payments/create-razorpay-order', paymentData, 'payment-response');
+        }
+
+        async function testBooking() {
+            const bookingData = {
+                professional: '507f1f77bcf86cd799439011',
+                serviceDetails: {
+                    description: 'Test booking from API dashboard',
+                    category: 'plumber'
+                },
+                scheduledDate: new Date().toISOString().split('T')[0],
+                scheduledTime: { start: '10:00' },
+                serviceAddress: {
+                    street: 'Test Address',
+                    city: 'Delhi',
+                    state: 'Delhi',
+                    pincode: '110001'
+                }
+            };
+            await makeAPICall('POST', '/bookings', bookingData, 'booking-response');
+        }
+
+        // Auto-test some APIs on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                testServerHealth();
+                setTimeout(() => testProfessionals(), 1000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
